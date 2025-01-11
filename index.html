@@ -8,136 +8,130 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            padding: 0;
+            background-color: #f4f4f4;
         }
-        .result-section {
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
             margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-
     <h1>Emotion Analysis Tool</h1>
-    
-    <label for="primary-emotion">Primary Emotion:</label>
-    <select id="primary-emotion"></select>
 
-    <label for="secondary-emotion">Secondary Emotion:</label>
-    <select id="secondary-emotion"></select>
+    <div class="form-group">
+        <label for="primaryEmotion">Primary Emotion:</label>
+        <select id="primaryEmotion"></select>
+    </div>
+    <div class="form-group">
+        <label for="secondaryEmotion">Secondary Emotion:</label>
+        <select id="secondaryEmotion" disabled></select>
+    </div>
+    <div class="form-group">
+        <label for="tertiaryEmotion">Tertiary Emotion:</label>
+        <select id="tertiaryEmotion" disabled></select>
+    </div>
+    <div class="form-group">
+        <label for="influence">Influence:</label>
+        <select id="influence" disabled></select>
+    </div>
+    <button id="checkButton">Check</button>
 
-    <label for="tertiary-emotion">Tertiary Emotion:</label>
-    <select id="tertiary-emotion"></select>
-
-    <label for="influence">Influence:</label>
-    <select id="influence"></select>
-
-    <button id="check-button">Check</button>
-
-    <div id="result" class="result-section" style="display: none;">
+    <div class="result" id="resultContainer" style="display: none;">
         <h2>Analysis:</h2>
-        <div id="clarify-emotion"></div>
-        <div id="explore-influence"></div>
-        <div id="insights-guidance"></div>
+        <div id="clarifyEmotion"></div>
+        <div id="exploreInfluence" class="section-title"></div>
+        <div id="insightsGuidance" class="section-title"></div>
     </div>
 
     <script>
-        const jsonUrl = 'path/to/your/structured_new.json'; // Replace with actual URL
+        const jsonUrl = 'structured_new.json';
         let data = [];
 
-        // Fetch JSON data
+        // Load JSON data
         fetch(jsonUrl)
             .then(response => response.json())
             .then(jsonData => {
                 data = jsonData;
                 populateDropdowns();
             })
-            .catch(error => console.error('Error loading JSON:', error));
+            .catch(error => {
+                console.error('Error loading data:', error);
+                alert('Error loading data. Please try again.');
+            });
 
         function populateDropdowns() {
             const primaryEmotionSet = new Set();
-            const influenceSet = new Set();
+            data.forEach(item => primaryEmotionSet.add(item.primary_emotion));
 
-            data.forEach(item => {
-                primaryEmotionSet.add(item.primary_emotion);
-                influenceSet.add(item.influence);
+            const primaryEmotionSelect = document.getElementById('primaryEmotion');
+            primaryEmotionSet.forEach(emotion => {
+                const option = document.createElement('option');
+                option.value = emotion;
+                option.textContent = emotion;
+                primaryEmotionSelect.appendChild(option);
             });
 
-            populateDropdown('primary-emotion', Array.from(primaryEmotionSet));
-            populateDropdown('influence', Array.from(influenceSet));
-
-            document.getElementById('primary-emotion').addEventListener('change', onPrimaryChange);
+            primaryEmotionSelect.addEventListener('change', handlePrimaryChange);
         }
 
-        function populateDropdown(dropdownId, options) {
-            const dropdown = document.getElementById(dropdownId);
-            dropdown.innerHTML = '<option value="">Select...</option>';
-            options.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option;
-                opt.textContent = option;
-                dropdown.appendChild(opt);
-            });
-        }
+        function handlePrimaryChange() {
+            const selectedPrimary = document.getElementById('primaryEmotion').value;
+            const secondaryEmotionSelect = document.getElementById('secondaryEmotion');
+            secondaryEmotionSelect.innerHTML = '';
+            secondaryEmotionSelect.disabled = false;
 
-        function onPrimaryChange() {
-            const selectedPrimary = document.getElementById('primary-emotion').value;
-            const secondaryEmotionSet = new Set();
-
-            data.forEach(item => {
-                if (item.primary_emotion === selectedPrimary) {
-                    secondaryEmotionSet.add(item.secondary_emotion);
-                }
-            });
-
-            populateDropdown('secondary-emotion', Array.from(secondaryEmotionSet));
-            document.getElementById('secondary-emotion').addEventListener('change', onSecondaryChange);
-        }
-
-        function onSecondaryChange() {
-            const selectedPrimary = document.getElementById('primary-emotion').value;
-            const selectedSecondary = document.getElementById('secondary-emotion').value;
-            const tertiaryEmotionSet = new Set();
-
-            data.forEach(item => {
-                if (item.primary_emotion === selectedPrimary && item.secondary_emotion === selectedSecondary) {
-                    tertiaryEmotionSet.add(item.tertiary_emotion);
-                }
-            });
-
-            populateDropdown('tertiary-emotion', Array.from(tertiaryEmotionSet));
-        }
-
-        document.getElementById('check-button').addEventListener('click', () => {
-            const selectedPrimary = document.getElementById('primary-emotion').value;
-            const selectedSecondary = document.getElementById('secondary-emotion').value;
-            const selectedTertiary = document.getElementById('tertiary-emotion').value;
-            const selectedInfluence = document.getElementById('influence').value;
-
-            const result = data.find(item =>
-                item.primary_emotion === selectedPrimary &&
-                item.secondary_emotion === selectedSecondary &&
-                item.tertiary_emotion === selectedTertiary &&
-                item.influence === selectedInfluence
+            const secondaryEmotionSet = new Set(
+                data.filter(item => item.primary_emotion === selectedPrimary)
+                    .map(item => item.secondary_emotion)
             );
 
-            if (result) {
-                displayResult(result.analysis);
-            } else {
-                document.getElementById('result').style.display = 'none';
-                alert('No matching analysis found.');
-            }
-        });
+            secondaryEmotionSet.forEach(emotion => {
+                const option = document.createElement('option');
+                option.value = emotion;
+                option.textContent = emotion;
+                secondaryEmotionSelect.appendChild(option);
+            });
 
-        function displayResult(analysis) {
-            document.getElementById('clarify-emotion').innerHTML = `<strong>Clarify the Emotion:</strong><br>${analysis.clarify_emotion.replace(/\n/g, '<br>')}`;
-            document.getElementById('explore-influence').innerHTML = `<strong>Explore the Influence:</strong><br>${analysis.explore_influence.replace(/\n/g, '<br>')}`;
-            document.getElementById('insights-guidance').innerHTML = `<strong>Insights and Guidance:</strong><br>${analysis.insights_guidance.join('<br>')}`;
-            document.getElementById('result').style.display = 'block';
+            secondaryEmotionSelect.addEventListener('change', handleSecondaryChange);
         }
-    </script>
 
-</body>
-</html>
+        function handleSecondaryChange() {
+            const selectedPrimary = document.getElementById('primaryEmotion').value;
+            const selectedSecondary = document.getElementById('secondaryEmotion').value;
+            const tertiaryEmotionSelect = document.getElementById('tertiaryEmotion');
+            tertiaryEmotionSelect.innerHTML = '';
+            tertiaryEmotionSelect.disabled = false;
+
+            const tertiaryEmotionSet = new Set(
+                data.filter(item => item.primary_emotion === selectedPrimary && item.secondary_emotion === selectedSecondary)
+                    .map(item => item.tertiary_emotion)
+   
