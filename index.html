@@ -58,15 +58,15 @@
     <div id="output" class="output-container" style="display:none;">
         <div class="output-section">
             <h3>Clarify the Emotion</h3>
-            <div id="clarify-emotion"></div>
+            <p id="clarify-emotion"></p>
         </div>
         <div class="output-section">
             <h3>Explore the Influence</h3>
-            <div id="explore-influence"></div>
+            <p id="explore-influence"></p>
         </div>
         <div class="output-section">
             <h3>Insights and Guidance</h3>
-            <div id="insights-guidance"></div>
+            <ul id="insights-guidance"></ul>
         </div>
     </div>
 
@@ -90,10 +90,10 @@
             const influenceSet = new Set();
 
             data.forEach(item => {
-                primarySet.add(item.primary_emotion);
-                secondarySet.add(item.secondary_emotion);
-                tertiarySet.add(item.tertiary_emotion);
-                influenceSet.add(item.influence);
+                primarySet.add(item.primary_emotion.trim());
+                secondarySet.add(item.secondary_emotion.trim());
+                tertiarySet.add(item.tertiary_emotion.trim());
+                influenceSet.add(item.influence.trim());
             });
 
             populateSelect('primary-emotion', primarySet);
@@ -119,24 +119,33 @@
             const tertiary = document.getElementById('tertiary-emotion').value.trim();
             const influence = document.getElementById('influence').value.trim();
 
+            console.log("Selected Values:", { primary, secondary, tertiary, influence });
+
             if (!primary || !secondary || !tertiary || !influence) {
                 alert('Please select all fields.');
                 return;
             }
 
             const result = data.find(item =>
-                item.primary_emotion === primary &&
-                item.secondary_emotion === secondary &&
-                item.tertiary_emotion === tertiary &&
-                item.influence === influence
+                item.primary_emotion.trim().toLowerCase() === primary.toLowerCase() &&
+                item.secondary_emotion.trim().toLowerCase() === secondary.toLowerCase() &&
+                item.tertiary_emotion.trim().toLowerCase() === tertiary.toLowerCase() &&
+                item.influence.trim().toLowerCase() === influence.toLowerCase()
             );
+
+            console.log("Matching Result:", result);
 
             if (result) {
                 document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion);
                 document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence);
                 
                 const insightsList = document.getElementById('insights-guidance');
-                insightsList.innerHTML = formatText(result.analysis.insights_guidance, true);
+                insightsList.innerHTML = '';
+                (result.analysis.insights_guidance || []).forEach(insight => {
+                    const li = document.createElement('li');
+                    li.innerHTML = insight;
+                    insightsList.appendChild(li);
+                });
 
                 document.getElementById('output').style.display = 'block';
             } else {
@@ -145,38 +154,11 @@
             }
         }
 
-        function formatText(text, isList = false) {
+        function formatText(text) {
             if (!text) return 'No data provided.';
-
-            if (isList) {
-                return `<ul>` + text.map(item => `<li>${item}</li>`).join('') + `</ul>`;
-            }
-
-            // Split the content by section headers in the format **Title:**
-            const sections = text.split(/\*\*(.*?)\*\*:/g); // Captures section titles between ** and :
-
-            let formattedText = '';
-
-            for (let i = 0; i < sections.length; i++) {
-                if (i % 2 === 1) {
-                    // Add section titles as <h3>
-                    formattedText += `<h3>${sections[i].trim()}</h3>`;
-                } else if (sections[i].trim()) {
-                    // Format the section content
-                    const content = sections[i]
-                        .replace(/- (.*?)(\n|$)/g, '<li>$1</li>') // Convert bullet points to <li>
-                        .replace(/\n/g, '<br>');                  // Convert line breaks to <br>
-                    
-                    // Wrap bullet points in <ul> if they exist
-                    if (content.includes('<li>')) {
-                        formattedText += `<ul>${content}</ul>`;
-                    } else {
-                        formattedText += `<p>${content}</p>`;
-                    }
-                }
-            }
-
-            return formattedText;
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold formatting
+                .replace(/\n/g, '<br>');                          // Line breaks
         }
     </script>
 </body>
