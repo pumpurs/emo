@@ -37,6 +37,16 @@
             line-height: 1.6;
             color: #333;
         }
+        .output-section ul {
+            padding-left: 20px;
+        }
+        .output-section ul li {
+            margin-bottom: 5px;
+        }
+        .bold-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -72,12 +82,11 @@
 
     <script>
         let data = [];
-        fetch('full_list_new_new.json')
+        fetch('cleaned_full_list.json')
             .then(response => response.json())
             .then(json => {
                 data = json;
                 populateDropdowns();
-                console.log('Data loaded successfully:', data);
             })
             .catch(error => {
                 console.error('Error loading data:', error);
@@ -115,52 +124,44 @@
         }
 
         function retrieveAnalysis() {
-            const primary = document.getElementById('primary-emotion').value.trim().toLowerCase();
-            const secondary = document.getElementById('secondary-emotion').value.trim().toLowerCase();
-            const tertiary = document.getElementById('tertiary-emotion').value.trim().toLowerCase();
-            const influence = document.getElementById('influence').value.trim().toLowerCase();
+            const primary = document.getElementById('primary-emotion').value;
+            const secondary = document.getElementById('secondary-emotion').value;
+            const tertiary = document.getElementById('tertiary-emotion').value;
+            const influence = document.getElementById('influence').value;
 
             if (!primary || !secondary || !tertiary || !influence) {
                 alert('Please select all fields.');
                 return;
             }
 
-            console.log("Primary Emotion Selected:", primary);
-            console.log("Secondary Emotion Selected:", secondary);
-            console.log("Tertiary Emotion Selected:", tertiary);
-            console.log("Influence Selected:", influence);
-
             const result = data.find(item =>
-                item.primary_emotion.trim().toLowerCase() === primary &&
-                item.secondary_emotion.trim().toLowerCase() === secondary &&
-                item.tertiary_emotion.trim().toLowerCase() === tertiary &&
-                item.influence.trim().toLowerCase() === influence
+                item.primary_emotion === primary &&
+                item.secondary_emotion === secondary &&
+                item.tertiary_emotion === tertiary &&
+                item.influence === influence
             );
 
             if (result) {
-                console.log('Matching analysis found:', result);
                 document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion);
                 document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence);
-
+                
                 const insightsList = document.getElementById('insights-guidance');
                 insightsList.innerHTML = '';
                 (result.analysis.insights_guidance || []).forEach(insight => {
                     const li = document.createElement('li');
-                    li.innerHTML = formatText(insight);
+                    li.textContent = insight;
                     insightsList.appendChild(li);
                 });
 
                 document.getElementById('output').style.display = 'block';
             } else {
                 alert('No matching analysis found.');
-                console.log('No matching analysis found for selected values.');
                 document.getElementById('output').style.display = 'none';
             }
         }
 
         function formatText(text) {
-            if (!text) return 'No data provided.';
-            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            return text.replace(/\*\*(.*?)\*\*/g, '<span class="bold-title">$1</span>');
         }
     </script>
 </body>
