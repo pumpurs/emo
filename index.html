@@ -32,20 +32,19 @@
             margin-bottom: 10px;
             color: #555;
         }
-        .output-section p, .output-section ul {
+        .output-section p,
+        .output-section ul {
             white-space: pre-wrap;
             line-height: 1.6;
             color: #333;
         }
         .output-section ul {
             padding-left: 20px;
-            list-style-type: disc;
         }
     </style>
 </head>
 <body>
     <h1>Emotion Analysis Tool</h1>
-    
     <label for="primary-emotion">Primary Emotion:</label>
     <select id="primary-emotion"></select>
 
@@ -137,18 +136,9 @@
             );
 
             if (result) {
-                // Clarify Emotion Section
-                let clarifyHTML = `
-                    <strong>Primary Emotion:</strong> ${result.analysis.clarify_emotion.primary}<br><br>
-                    <strong>Secondary Emotion:</strong> ${result.analysis.clarify_emotion.secondary}<br><br>
-                    <strong>Tertiary Emotion:</strong> ${result.analysis.clarify_emotion.tertiary}
-                `;
-                document.getElementById('clarify-emotion').innerHTML = clarifyHTML;
-
-                // Explore Influence Section
-                document.getElementById('explore-influence').innerHTML = `<strong>Explore the Influence:</strong><br>${result.analysis.explore_influence || 'No data provided.'}`;
-
-                // Insights and Guidance Section
+                document.getElementById('clarify-emotion').innerHTML = result.analysis.clarify_emotion || 'No data provided.';
+                document.getElementById('explore-influence').innerHTML = result.analysis.explore_influence || 'No data provided.';
+                
                 const insightsList = document.getElementById('insights-guidance');
                 insightsList.innerHTML = '';
                 (result.analysis.insights_guidance || []).forEach(insight => {
