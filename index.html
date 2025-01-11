@@ -24,8 +24,6 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             background-color: #f9f9f9;
-            max-height: 500px;
-            overflow-y: auto;
         }
         .output-section {
             margin-bottom: 20px;
@@ -39,9 +37,8 @@
             line-height: 1.6;
             color: #333;
         }
-        .output-section ul {
-            list-style-type: disc;
-            margin-left: 20px;
+        ul {
+            padding-left: 20px;
         }
     </style>
 </head>
@@ -78,17 +75,21 @@
 
     <script>
         let data = [];
+
+        // Fetch the JSON data and populate dropdowns
         fetch('full_list_new_new.json')
             .then(response => response.json())
             .then(json => {
                 data = json;
                 populateDropdowns();
+                console.log('Data loaded successfully:', data);
             })
             .catch(error => {
                 console.error('Error loading data:', error);
                 alert('Error loading data. Please try again.');
             });
 
+        // Populate dropdowns with unique values
         function populateDropdowns() {
             const primarySet = new Set();
             const secondarySet = new Set();
@@ -96,10 +97,10 @@
             const influenceSet = new Set();
 
             data.forEach(item => {
-                primarySet.add(item.primary_emotion);
-                secondarySet.add(item.secondary_emotion);
-                tertiarySet.add(item.tertiary_emotion);
-                influenceSet.add(item.influence);
+                primarySet.add(item.primary_emotion.trim());
+                secondarySet.add(item.secondary_emotion.trim());
+                tertiarySet.add(item.tertiary_emotion.trim());
+                influenceSet.add(item.influence.trim());
             });
 
             populateSelect('primary-emotion', primarySet);
@@ -108,6 +109,7 @@
             populateSelect('influence', influenceSet);
         }
 
+        // Helper function to populate a select element
         function populateSelect(selectId, optionsSet) {
             const selectElement = document.getElementById(selectId);
             selectElement.innerHTML = '<option value="">Select</option>';
@@ -119,31 +121,30 @@
             });
         }
 
+        // Retrieve and display the analysis
         function retrieveAnalysis() {
-            const primary = document.getElementById('primary-emotion').value;
-            const secondary = document.getElementById('secondary-emotion').value;
-            const tertiary = document.getElementById('tertiary-emotion').value;
-            const influence = document.getElementById('influence').value;
+            const primary = document.getElementById('primary-emotion').value.trim().toLowerCase();
+            const secondary = document.getElementById('secondary-emotion').value.trim().toLowerCase();
+            const tertiary = document.getElementById('tertiary-emotion').value.trim().toLowerCase();
+            const influence = document.getElementById('influence').value.trim().toLowerCase();
 
             if (!primary || !secondary || !tertiary || !influence) {
                 alert('Please select all fields.');
                 return;
             }
 
+            console.log('Selected values:', { primary, secondary, tertiary, influence });
+
             const result = data.find(item =>
-                item.primary_emotion === primary &&
-                item.secondary_emotion === secondary &&
-                item.tertiary_emotion === tertiary &&
-                item.influence === influence
+                item.primary_emotion.trim().toLowerCase() === primary &&
+                item.secondary_emotion.trim().toLowerCase() === secondary &&
+                item.tertiary_emotion.trim().toLowerCase() === tertiary &&
+                item.influence.trim().toLowerCase() === influence
             );
 
             if (result) {
-                document.getElementById('clarify-emotion').innerHTML = result.analysis.clarify_emotion
-                    ? `<pre>${result.analysis.clarify_emotion}</pre>`
-                    : 'No data provided.';
-                document.getElementById('explore-influence').innerHTML = result.analysis.explore_influence
-                    ? `<pre>${result.analysis.explore_influence}</pre>`
-                    : 'No data provided.';
+                document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion || 'No data provided.');
+                document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence || 'No data provided.');
 
                 const insightsList = document.getElementById('insights-guidance');
                 insightsList.innerHTML = '';
@@ -155,9 +156,19 @@
 
                 document.getElementById('output').style.display = 'block';
             } else {
+                console.warn('No matching analysis found for:', { primary, secondary, tertiary, influence });
                 alert('No matching analysis found.');
                 document.getElementById('output').style.display = 'none';
             }
+        }
+
+        // Format the text for better readability
+        function formatText(text) {
+            if (!text) return 'No data provided.';
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold for **text**
+                .replace(/\n/g, '<br>')                             // Line breaks
+                .replace(/- (.*?)(\n|$)/g, '<li>$1</li>');          // Convert - to list items
         }
     </script>
 </body>
