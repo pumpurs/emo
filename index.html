@@ -37,7 +37,7 @@
             line-height: 1.6;
             color: #333;
         }
-        ul {
+        .output-section ul {
             padding-left: 20px;
         }
     </style>
@@ -61,11 +61,11 @@
     <div id="output" class="output-container" style="display:none;">
         <div class="output-section">
             <h3>Clarify the Emotion</h3>
-            <p id="clarify-emotion"></p>
+            <div id="clarify-emotion"></div>
         </div>
         <div class="output-section">
             <h3>Explore the Influence</h3>
-            <p id="explore-influence"></p>
+            <div id="explore-influence"></div>
         </div>
         <div class="output-section">
             <h3>Insights and Guidance</h3>
@@ -75,21 +75,18 @@
 
     <script>
         let data = [];
-
-        // Fetch the JSON data and populate dropdowns
         fetch('full_list_new_new.json')
             .then(response => response.json())
             .then(json => {
                 data = json;
                 populateDropdowns();
-                console.log('Data loaded successfully:', data);
+                console.log('Data loaded:', data);
             })
             .catch(error => {
                 console.error('Error loading data:', error);
                 alert('Error loading data. Please try again.');
             });
 
-        // Populate dropdowns with unique values
         function populateDropdowns() {
             const primarySet = new Set();
             const secondarySet = new Set();
@@ -109,7 +106,6 @@
             populateSelect('influence', influenceSet);
         }
 
-        // Helper function to populate a select element
         function populateSelect(selectId, optionsSet) {
             const selectElement = document.getElementById(selectId);
             selectElement.innerHTML = '<option value="">Select</option>';
@@ -121,31 +117,28 @@
             });
         }
 
-        // Retrieve and display the analysis
         function retrieveAnalysis() {
-            const primary = document.getElementById('primary-emotion').value.trim().toLowerCase();
-            const secondary = document.getElementById('secondary-emotion').value.trim().toLowerCase();
-            const tertiary = document.getElementById('tertiary-emotion').value.trim().toLowerCase();
-            const influence = document.getElementById('influence').value.trim().toLowerCase();
+            const primary = document.getElementById('primary-emotion').value.trim();
+            const secondary = document.getElementById('secondary-emotion').value.trim();
+            const tertiary = document.getElementById('tertiary-emotion').value.trim();
+            const influence = document.getElementById('influence').value.trim();
 
             if (!primary || !secondary || !tertiary || !influence) {
                 alert('Please select all fields.');
                 return;
             }
 
-            console.log('Selected values:', { primary, secondary, tertiary, influence });
-
             const result = data.find(item =>
-                item.primary_emotion.trim().toLowerCase() === primary &&
-                item.secondary_emotion.trim().toLowerCase() === secondary &&
-                item.tertiary_emotion.trim().toLowerCase() === tertiary &&
-                item.influence.trim().toLowerCase() === influence
+                item.primary_emotion === primary &&
+                item.secondary_emotion === secondary &&
+                item.tertiary_emotion === tertiary &&
+                item.influence === influence
             );
 
             if (result) {
                 document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion || 'No data provided.');
                 document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence || 'No data provided.');
-
+                
                 const insightsList = document.getElementById('insights-guidance');
                 insightsList.innerHTML = '';
                 (result.analysis.insights_guidance || []).forEach(insight => {
@@ -156,19 +149,34 @@
 
                 document.getElementById('output').style.display = 'block';
             } else {
-                console.warn('No matching analysis found for:', { primary, secondary, tertiary, influence });
                 alert('No matching analysis found.');
                 document.getElementById('output').style.display = 'none';
             }
+
+            console.log('Retrieved result:', result);
         }
 
-        // Format the text for better readability
         function formatText(text) {
             if (!text) return 'No data provided.';
-            return text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold for **text**
-                .replace(/\n/g, '<br>')                             // Line breaks
-                .replace(/- (.*?)(\n|$)/g, '<li>$1</li>');          // Convert - to list items
+
+            // Split by sections using **Section Title:** pattern
+            const sections = text.split(/\*\*(.*?)\*\*:/g); // Captures titles between ** and :
+            let formattedText = '';
+
+            for (let i = 0; i < sections.length; i++) {
+                if (i % 2 === 1) {
+                    // Add section title in <h3>
+                    formattedText += `<h3>${sections[i].trim()}</h3>`;
+                } else if (sections[i].trim()) {
+                    // Add section content with line breaks and lists
+                    const content = sections[i]
+                        .replace(/- (.*?)(\n|$)/g, '<li>$1</li>') // Convert - to <li>
+                        .replace(/\n/g, '<br>');                  // Convert line breaks to <br>
+                    formattedText += `<p>${content}</p>`;
+                }
+            }
+
+            return formattedText;
         }
     </script>
 </body>
