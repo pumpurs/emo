@@ -48,7 +48,7 @@
             margin-top: 15px;
             margin-bottom: 5px;
         }
-        p {
+        p, ul {
             line-height: 1.6;
         }
         ul {
@@ -104,7 +104,7 @@
         const dataUrl = 'structured_new.json'; // Path to your JSON file
         let data = [];
 
-        // Fetch data from JSON
+        // Fetch data from JSON file
         fetch(dataUrl)
             .then(response => response.json())
             .then(jsonData => {
@@ -146,7 +146,7 @@
             const resultDiv = document.getElementById('result');
 
             if (!primary || !secondary || !tertiary || !influence) {
-                resultDiv.innerHTML = 'Please select all options.';
+                resultDiv.innerHTML = 'Please select all fields.';
                 return;
             }
 
@@ -158,16 +158,17 @@
             );
 
             if (analysisItem) {
+                const analysis = analysisItem.analysis;
                 resultDiv.innerHTML = `
                     <div class="section-title">Clarify the Emotion:</div>
-                    <p>${analysisItem.analysis.clarify_emotion.replace(/\n/g, '<br>')}</p>
+                    <p>${analysis.clarify_emotion.replace(/\n/g, '<br>')}</p>
 
                     <div class="section-title">Explore the Influence:</div>
-                    <p>${analysisItem.analysis.explore_influence.replace(/\n/g, '<br>')}</p>
+                    <p>${analysis.explore_influence.replace(/\n/g, '<br>')}</p>
 
                     <div class="section-title">Insights and Guidance:</div>
-                    <ul>${analysisItem.analysis.insights_guidance.length > 0
-                      ? analysisItem.analysis.insights_guidance.map(insight => `<li>${insight}</li>`).join('')
+                    <ul>${analysis.insights_guidance.length > 0
+                      ? analysis.insights_guidance.map(insight => `<li>${insight}</li>`).join('')
                       : '<li>No data provided.</li>'
                     }</ul>
                 `;
