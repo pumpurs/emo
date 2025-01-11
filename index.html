@@ -25,6 +25,10 @@
             border: 1px solid #ccc;
             padding: 20px;
             margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        #output h4 {
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -138,13 +142,13 @@
                 <h3>Analysis:</h3>
                 <div>
                     <h4>Clarify the Emotion:</h4>
-                    <p>${extractSection(analysis, '**Clarify the Emotion:**', '**Explore the Influence:**')}</p>
+                    <p>${extractSection(analysis, 'Clarify the Emotion:', 'Explore the Influence:')}</p>
 
                     <h4>Explore the Influence:</h4>
-                    <p>${extractSection(analysis, '**Explore the Influence:**', '**Insights and Guidance:**')}</p>
+                    <p>${extractSection(analysis, 'Explore the Influence:', 'Insights and Guidance:')}</p>
 
                     <h4>Insights and Guidance:</h4>
-                    <p>${extractSection(analysis, '**Insights and Guidance:**')}</p>
+                    <p>${extractSection(analysis, 'Insights and Guidance:')}</p>
                 </div>
             `;
         }
