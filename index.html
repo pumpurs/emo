@@ -37,9 +37,6 @@
             line-height: 1.6;
             color: #333;
         }
-        .output-section ul {
-            padding-left: 20px;
-        }
     </style>
 </head>
 <body>
@@ -69,7 +66,7 @@
         </div>
         <div class="output-section">
             <h3>Insights and Guidance</h3>
-            <ul id="insights-guidance"></ul>
+            <div id="insights-guidance"></div>
         </div>
     </div>
 
@@ -80,7 +77,6 @@
             .then(json => {
                 data = json;
                 populateDropdowns();
-                console.log('Data loaded:', data);
             })
             .catch(error => {
                 console.error('Error loading data:', error);
@@ -94,10 +90,10 @@
             const influenceSet = new Set();
 
             data.forEach(item => {
-                primarySet.add(item.primary_emotion.trim());
-                secondarySet.add(item.secondary_emotion.trim());
-                tertiarySet.add(item.tertiary_emotion.trim());
-                influenceSet.add(item.influence.trim());
+                primarySet.add(item.primary_emotion);
+                secondarySet.add(item.secondary_emotion);
+                tertiarySet.add(item.tertiary_emotion);
+                influenceSet.add(item.influence);
             });
 
             populateSelect('primary-emotion', primarySet);
@@ -136,43 +132,47 @@
             );
 
             if (result) {
-                document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion || 'No data provided.');
-                document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence || 'No data provided.');
+                document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion);
+                document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence);
                 
                 const insightsList = document.getElementById('insights-guidance');
-                insightsList.innerHTML = '';
-                (result.analysis.insights_guidance || []).forEach(insight => {
-                    const li = document.createElement('li');
-                    li.textContent = insight;
-                    insightsList.appendChild(li);
-                });
+                insightsList.innerHTML = formatText(result.analysis.insights_guidance, true);
 
                 document.getElementById('output').style.display = 'block';
             } else {
                 alert('No matching analysis found.');
                 document.getElementById('output').style.display = 'none';
             }
-
-            console.log('Retrieved result:', result);
         }
 
-        function formatText(text) {
+        function formatText(text, isList = false) {
             if (!text) return 'No data provided.';
 
-            // Split by sections using **Section Title:** pattern
-            const sections = text.split(/\*\*(.*?)\*\*:/g); // Captures titles between ** and :
+            if (isList) {
+                return `<ul>` + text.map(item => `<li>${item}</li>`).join('') + `</ul>`;
+            }
+
+            // Split the content by section headers in the format **Title:**
+            const sections = text.split(/\*\*(.*?)\*\*:/g); // Captures section titles between ** and :
+
             let formattedText = '';
 
             for (let i = 0; i < sections.length; i++) {
                 if (i % 2 === 1) {
-                    // Add section title in <h3>
+                    // Add section titles as <h3>
                     formattedText += `<h3>${sections[i].trim()}</h3>`;
                 } else if (sections[i].trim()) {
-                    // Add section content with line breaks and lists
+                    // Format the section content
                     const content = sections[i]
-                        .replace(/- (.*?)(\n|$)/g, '<li>$1</li>') // Convert - to <li>
+                        .replace(/- (.*?)(\n|$)/g, '<li>$1</li>') // Convert bullet points to <li>
                         .replace(/\n/g, '<br>');                  // Convert line breaks to <br>
-                    formattedText += `<p>${content}</p>`;
+                    
+                    // Wrap bullet points in <ul> if they exist
+                    if (content.includes('<li>')) {
+                        formattedText += `<ul>${content}</ul>`;
+                    } else {
+                        formattedText += `<p>${content}</p>`;
+                    }
                 }
             }
 
