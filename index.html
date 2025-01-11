@@ -8,96 +8,57 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            padding: 0;
-            box-sizing: border-box;
         }
-        h1 {
+        h1, h3 {
             text-align: center;
-            margin-bottom: 20px;
         }
-        .form-container {
-            max-width: 600px;
-            margin: 0 auto 20px;
-        }
-        .form-container label {
-            display: block;
-            margin-bottom: 5px;
+        label {
             font-weight: bold;
         }
-        .form-container select,
-        .form-container button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .analysis-container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .analysis-container h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        .analysis-container h4 {
-            font-size: 18px;
-            margin: 15px 0 5px;
-            color: #333;
-        }
-        .analysis-container p {
-            margin: 5px 0 10px;
-        }
-        .analysis-container ul {
-            padding-left: 20px;
+        select, button {
+            display: block;
             margin: 10px 0;
+            padding: 5px;
+            width: 100%;
         }
-        .analysis-container ul li {
-            margin-bottom: 5px;
+        #output {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <h1>Emotion Analysis Tool</h1>
-
-    <div class="form-container">
-        <label for="primary">Primary Emotion:</label>
-        <select id="primary" onchange="updateSecondary()">
-            <option value="">Select Primary Emotion</option>
-        </select>
-
-        <label for="secondary">Secondary Emotion:</label>
-        <select id="secondary" onchange="updateTertiary()">
-            <option value="">Select Secondary Emotion</option>
-        </select>
-
-        <label for="tertiary">Tertiary Emotion:</label>
-        <select id="tertiary">
-            <option value="">Select Tertiary Emotion</option>
-        </select>
-
-        <label for="influence">Influence:</label>
-        <select id="influence">
-            <option value="">Select Influence</option>
-        </select>
-
-        <button onclick="checkAnalysis()">Check</button>
-    </div>
-
-    <div id="analysisOutput" class="analysis-container" style="display: none;">
-        <h3>Analysis:</h3>
-        <div id="analysisContent"></div>
-    </div>
-
-    <div id="errorOutput" style="display: none; color: red; text-align: center;">
-        No matching analysis found.
-    </div>
+    
+    <label for="primary">Primary Emotion:</label>
+    <select id="primary" onchange="populateSecondaryDropdown()">
+        <option value="">Select Primary Emotion</option>
+    </select>
+    
+    <label for="secondary">Secondary Emotion:</label>
+    <select id="secondary" onchange="populateTertiaryDropdown()">
+        <option value="">Select Secondary Emotion</option>
+    </select>
+    
+    <label for="tertiary">Tertiary Emotion:</label>
+    <select id="tertiary">
+        <option value="">Select Tertiary Emotion</option>
+    </select>
+    
+    <label for="influence">Influence:</label>
+    <select id="influence">
+        <option value="">Select Influence</option>
+    </select>
+    
+    <button onclick="checkAnalysis()">Check</button>
+    
+    <div id="output"></div>
 
     <script>
         let data = [];
-
-        // Load JSON data
+        
+        // Fetch the JSON file and load data
         fetch('new.json')
             .then(response => response.json())
             .then(json => {
@@ -112,79 +73,86 @@
         function populatePrimaryDropdown() {
             const primaryDropdown = document.getElementById('primary');
             const uniquePrimary = [...new Set(data.map(item => item.primary_emotion))];
-            uniquePrimary.forEach(primary => {
+            uniquePrimary.forEach(emotion => {
                 const option = document.createElement('option');
-                option.value = primary;
-                option.textContent = primary;
+                option.value = emotion;
+                option.textContent = emotion;
                 primaryDropdown.appendChild(option);
             });
         }
 
-        function updateSecondary() {
-            const primaryValue = document.getElementById('primary').value;
+        function populateSecondaryDropdown() {
             const secondaryDropdown = document.getElementById('secondary');
             secondaryDropdown.innerHTML = '<option value="">Select Secondary Emotion</option>';
-
-            const filteredData = data.filter(item => item.primary_emotion === primaryValue);
+            const selectedPrimary = document.getElementById('primary').value;
+            const filteredData = data.filter(item => item.primary_emotion === selectedPrimary);
             const uniqueSecondary = [...new Set(filteredData.map(item => item.secondary_emotion))];
-            uniqueSecondary.forEach(secondary => {
+            uniqueSecondary.forEach(emotion => {
                 const option = document.createElement('option');
-                option.value = secondary;
-                option.textContent = secondary;
+                option.value = emotion;
+                option.textContent = emotion;
                 secondaryDropdown.appendChild(option);
             });
         }
 
-        function updateTertiary() {
-            const primaryValue = document.getElementById('primary').value;
-            const secondaryValue = document.getElementById('secondary').value;
+        function populateTertiaryDropdown() {
             const tertiaryDropdown = document.getElementById('tertiary');
             tertiaryDropdown.innerHTML = '<option value="">Select Tertiary Emotion</option>';
-
-            const filteredData = data.filter(item => item.primary_emotion === primaryValue && item.secondary_emotion === secondaryValue);
+            const selectedPrimary = document.getElementById('primary').value;
+            const selectedSecondary = document.getElementById('secondary').value;
+            const filteredData = data.filter(item => item.primary_emotion === selectedPrimary && item.secondary_emotion === selectedSecondary);
             const uniqueTertiary = [...new Set(filteredData.map(item => item.tertiary_emotion))];
-            uniqueTertiary.forEach(tertiary => {
+            uniqueTertiary.forEach(emotion => {
                 const option = document.createElement('option');
-                option.value = tertiary;
-                option.textContent = tertiary;
+                option.value = emotion;
+                option.textContent = emotion;
                 tertiaryDropdown.appendChild(option);
             });
         }
 
         function checkAnalysis() {
-            const primaryValue = document.getElementById('primary').value;
-            const secondaryValue = document.getElementById('secondary').value;
-            const tertiaryValue = document.getElementById('tertiary').value;
-            const influenceValue = document.getElementById('influence').value;
+            const selectedPrimary = document.getElementById('primary').value;
+            const selectedSecondary = document.getElementById('secondary').value;
+            const selectedTertiary = document.getElementById('tertiary').value;
+            const selectedInfluence = document.getElementById('influence').value;
 
-            const matchingAnalysis = data.find(item =>
-                item.primary_emotion === primaryValue &&
-                item.secondary_emotion === secondaryValue &&
-                item.tertiary_emotion === tertiaryValue &&
-                item.influence === influenceValue
+            const result = data.find(item =>
+                item.primary_emotion === selectedPrimary &&
+                item.secondary_emotion === selectedSecondary &&
+                item.tertiary_emotion === selectedTertiary &&
+                item.influence === selectedInfluence
             );
 
-            const analysisOutput = document.getElementById('analysisOutput');
-            const analysisContent = document.getElementById('analysisContent');
-            const errorOutput = document.getElementById('errorOutput');
+            displayAnalysis(result ? result.analysis : null);
+        }
 
-            if (matchingAnalysis) {
-                analysisContent.innerHTML = `
-                    <h4>Clarify the Emotion:</h4>
-                    <p>${matchingAnalysis.analysis.split('**Explore the Influence:**')[0].trim()}</p>
-                    <h4>Explore the Influence:</h4>
-                    <p>${matchingAnalysis.analysis.split('**Explore the Influence:**')[1].split('**Insights and Guidance:**')[0].trim()}</p>
-                    <h4>Insights and Guidance:</h4>
-                    <ul>
-                        ${matchingAnalysis.analysis.split('**Insights and Guidance:**')[1].trim().split('\n').map(step => `<li>${step.trim()}</li>`).join('')}
-                    </ul>
-                `;
-                analysisOutput.style.display = 'block';
-                errorOutput.style.display = 'none';
-            } else {
-                analysisOutput.style.display = 'none';
-                errorOutput.style.display = 'block';
+        function displayAnalysis(analysis) {
+            const outputDiv = document.getElementById('output');
+            
+            if (!analysis) {
+                outputDiv.innerHTML = '<p>No matching analysis found.</p>';
+                return;
             }
+
+            outputDiv.innerHTML = `
+                <h3>Analysis:</h3>
+                <div>
+                    <h4>Clarify the Emotion:</h4>
+                    <p>${extractSection(analysis, '**Clarify the Emotion:**', '**Explore the Influence:**')}</p>
+
+                    <h4>Explore the Influence:</h4>
+                    <p>${extractSection(analysis, '**Explore the Influence:**', '**Insights and Guidance:**')}</p>
+
+                    <h4>Insights and Guidance:</h4>
+                    <p>${extractSection(analysis, '**Insights and Guidance:**')}</p>
+                </div>
+            `;
+        }
+
+        function extractSection(text, startMarker, endMarker = null) {
+            const startIndex = text.indexOf(startMarker) + startMarker.length;
+            const endIndex = endMarker ? text.indexOf(endMarker) : text.length;
+            return text.substring(startIndex, endIndex).trim();
         }
     </script>
 </body>
