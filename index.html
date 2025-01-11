@@ -38,14 +38,8 @@
             color: #333;
         }
         .output-section ul {
+            list-style-type: disc;
             padding-left: 20px;
-        }
-        .output-section ul li {
-            margin-bottom: 5px;
-        }
-        .bold-title {
-            font-weight: bold;
-            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -124,10 +118,12 @@
         }
 
         function retrieveAnalysis() {
-            const primary = document.getElementById('primary-emotion').value;
-            const secondary = document.getElementById('secondary-emotion').value;
-            const tertiary = document.getElementById('tertiary-emotion').value;
-            const influence = document.getElementById('influence').value;
+            const primary = document.getElementById('primary-emotion').value.trim();
+            const secondary = document.getElementById('secondary-emotion').value.trim();
+            const tertiary = document.getElementById('tertiary-emotion').value.trim();
+            const influence = document.getElementById('influence').value.trim();
+
+            console.log('Selected Values:', { primary, secondary, tertiary, influence });
 
             if (!primary || !secondary || !tertiary || !influence) {
                 alert('Please select all fields.');
@@ -156,12 +152,14 @@
                 document.getElementById('output').style.display = 'block';
             } else {
                 alert('No matching analysis found.');
+                console.log('No match for:', { primary, secondary, tertiary, influence });
                 document.getElementById('output').style.display = 'none';
             }
         }
 
         function formatText(text) {
-            return text.replace(/\*\*(.*?)\*\*/g, '<span class="bold-title">$1</span>');
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                       .replace(/\n/g, '<br>');
         }
     </script>
 </body>
