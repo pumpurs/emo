@@ -96,7 +96,7 @@
                 return;
             }
 
-            fetch('full_list_new_new.json') // Ensure your JSON file is in the same directory
+            fetch('new.json') // Updated to fetch new.json
                 .then(response => response.json())
                 .then(data => {
                     const match = data.find(item => 
