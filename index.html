@@ -16,167 +16,105 @@
             max-width: 600px;
             margin: 0 auto;
         }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
         select, button {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
             font-size: 16px;
+            margin-bottom: 10px;
         }
-        .result {
+        #result {
             margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            border: 1px solid #ccc;
             background-color: #f9f9f9;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>Emotion Analysis Tool</h1>
 
-        <label for="primary-emotion">Primary Emotion:</label>
-        <select id="primary-emotion">
-            <option value="">Select Primary Emotion</option>
-            <option value="Anger">Anger</option>
-            <option value="Fear">Fear</option>
-            <option value="Sadness">Sadness</option>
-            <option value="Joy">Joy</option>
-            <option value="Surprise">Surprise</option>
-            <option value="Trust">Trust</option>
-        </select>
+        <div class="input-group">
+            <label for="primary">Primary Emotion:</label>
+            <select id="primary">
+                <option value="Anger">Anger</option>
+                <option value="Sadness">Sadness</option>
+                <option value="Fear">Fear</option>
+                <!-- Add other primary emotions as needed -->
+            </select>
+        </div>
 
-        <label for="secondary-emotion">Secondary Emotion:</label>
-        <select id="secondary-emotion">
-            <option value="">Select Secondary Emotion</option>
-        </select>
+        <div class="input-group">
+            <label for="secondary">Secondary Emotion:</label>
+            <select id="secondary">
+                <option value="Rage">Rage</option>
+                <option value="Grief">Grief</option>
+                <option value="Anxiety">Anxiety</option>
+                <!-- Add other secondary emotions as needed -->
+            </select>
+        </div>
 
-        <label for="tertiary-emotion">Tertiary Emotion:</label>
-        <select id="tertiary-emotion">
-            <option value="">Select Tertiary Emotion</option>
-        </select>
+        <div class="input-group">
+            <label for="tertiary">Tertiary Emotion:</label>
+            <select id="tertiary">
+                <option value="Hate">Hate</option>
+                <option value="Sorrow">Sorrow</option>
+                <option value="Panic">Panic</option>
+                <!-- Add other tertiary emotions as needed -->
+            </select>
+        </div>
 
-        <label for="influence">Influence:</label>
-        <select id="influence">
-            <option value="">Select Influence</option>
-            <option value="Health, self-care">Health, self-care</option>
-            <option value="Physical well-being (athletic form)">Physical well-being (athletic form)</option>
-            <option value="Hobbies">Hobbies</option>
-            <option value="Identity, self-confidence">Identity, self-confidence</option>
-            <option value="Spirituality">Spirituality</option>
-            <option value="Acquaintances">Acquaintances</option>
-            <option value="Family">Family</option>
-            <option value="Friends">Friends</option>
-            <option value="Partner">Partner</option>
-            <option value="Dating">Dating</option>
-            <option value="Work">Work</option>
-            <option value="Money">Money</option>
-            <option value="Responsibilities">Responsibilities</option>
-            <option value="School, university">School, university</option>
-            <option value="Travel">Travel</option>
-            <option value="Weather">Weather</option>
-            <option value="Specific other event">Specific other event</option>
-        </select>
+        <div class="input-group">
+            <label for="influence">Influence:</label>
+            <select id="influence">
+                <option value="Health, self-care">Health, self-care</option>
+                <option value="Physical well-being (athletic form)">Physical well-being (athletic form)</option>
+                <option value="Hobbies">Hobbies</option>
+                <!-- Add other influences as needed -->
+            </select>
+        </div>
 
-        <button id="check-button">Check</button>
+        <button id="checkButton">Check</button>
 
-        <div class="result" id="result-area">No matching analysis found.</div>
+        <div id="result">No matching analysis found.</div>
     </div>
 
     <script>
-        document.getElementById('check-button').addEventListener('click', function() {
-            const primaryEmotion = document.getElementById('primary-emotion').value;
-            const secondaryEmotion = document.getElementById('secondary-emotion').value;
-            const tertiaryEmotion = document.getElementById('tertiary-emotion').value;
-            const influence = document.getElementById('influence').value;
-            const resultArea = document.getElementById('result-area');
+        document.getElementById("checkButton").addEventListener("click", function () {
+            const primary = document.getElementById("primary").value.trim().toLowerCase();
+            const secondary = document.getElementById("secondary").value.trim().toLowerCase();
+            const tertiary = document.getElementById("tertiary").value.trim().toLowerCase();
+            const influence = document.getElementById("influence").value.trim().toLowerCase();
 
-            if (!primaryEmotion || !secondaryEmotion || !tertiaryEmotion || !influence) {
-                resultArea.innerHTML = "Please select all fields.";
-                return;
-            }
-
-            fetch('new.json') // Updated to fetch new.json
+            fetch("new.json")
                 .then(response => response.json())
                 .then(data => {
-                    const match = data.find(item => 
-                        item.primary_emotion === primaryEmotion &&
-                        item.secondary_emotion === secondaryEmotion &&
-                        item.tertiary_emotion === tertiaryEmotion &&
-                        item.influence === influence
+                    const result = data.find(entry =>
+                        entry.primary_emotion.trim().toLowerCase() === primary &&
+                        entry.secondary_emotion.trim().toLowerCase() === secondary &&
+                        entry.tertiary_emotion.trim().toLowerCase() === tertiary &&
+                        entry.influence.trim().toLowerCase() === influence
                     );
 
-                    if (match) {
-                        resultArea.innerHTML = `<h3>Analysis:</h3><p>${match.analysis}</p>`;
+                    if (result) {
+                        document.getElementById("result").innerHTML = result.analysis;
                     } else {
-                        resultArea.innerHTML = "No matching analysis found.";
+                        document.getElementById("result").innerHTML = "No matching analysis found.";
                     }
                 })
                 .catch(error => {
-                    resultArea.innerHTML = "Error loading data. Please try again.";
-                    console.error('Error fetching data:', error);
+                    console.error("Error fetching data:", error);
+                    document.getElementById("result").innerHTML = "Error loading data. Please try again.";
                 });
-        });
-
-        // Data for secondary and tertiary emotions (example structure)
-        const emotionHierarchy = {
-            "Anger": {
-                "Rage": ["Hate", "Hostility"],
-                "Annoyance": ["Irritation", "Frustration"]
-            },
-            "Fear": {
-                "Anxiety": ["Nervousness", "Tension"],
-                "Panic": ["Horror", "Dread"]
-            },
-            "Sadness": {
-                "Grief": ["Sorrow", "Despair"],
-                "Disappointment": ["Regret", "Loneliness"]
-            },
-            "Joy": {
-                "Happiness": ["Contentment", "Satisfaction"],
-                "Excitement": ["Euphoria", "Delight"]
-            },
-            "Surprise": {
-                "Amazement": ["Wonder", "Awe"],
-                "Shock": ["Disbelief", "Stupefaction"]
-            },
-            "Trust": {
-                "Acceptance": ["Approval", "Support"],
-                "Admiration": ["Respect", "Appreciation"]
-            }
-        };
-
-        // Populate secondary emotion dropdown
-        document.getElementById('primary-emotion').addEventListener('change', function() {
-            const secondarySelect = document.getElementById('secondary-emotion');
-            secondarySelect.innerHTML = '<option value="">Select Secondary Emotion</option>';
-            const selectedPrimary = this.value;
-            if (emotionHierarchy[selectedPrimary]) {
-                Object.keys(emotionHierarchy[selectedPrimary]).forEach(secondary => {
-                    const option = document.createElement('option');
-                    option.value = secondary;
-                    option.textContent = secondary;
-                    secondarySelect.appendChild(option);
-                });
-            }
-        });
-
-        // Populate tertiary emotion dropdown
-        document.getElementById('secondary-emotion').addEventListener('change', function() {
-            const tertiarySelect = document.getElementById('tertiary-emotion');
-            tertiarySelect.innerHTML = '<option value="">Select Tertiary Emotion</option>';
-            const selectedPrimary = document.getElementById('primary-emotion').value;
-            const selectedSecondary = this.value;
-            if (emotionHierarchy[selectedPrimary] && emotionHierarchy[selectedPrimary][selectedSecondary]) {
-                emotionHierarchy[selectedPrimary][selectedSecondary].forEach(tertiary => {
-                    const option = document.createElement('option');
-                    option.value = tertiary;
-                    option.textContent = tertiary;
-                    tertiarySelect.appendChild(option);
-                });
-            }
         });
     </script>
-
 </body>
 </html>
