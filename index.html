@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Analysis Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Emotion Analysis Tool</h1>
+
+        <label for="primary-emotion">Primary Emotion:</label>
+        <select id="primary-emotion">
+            <option value="">Select Primary Emotion</option>
+            <option value="Anger">Anger</option>
+            <option value="Fear">Fear</option>
+            <option value="Sadness">Sadness</option>
+            <option value="Joy">Joy</option>
+            <option value="Surprise">Surprise</option>
+            <option value="Trust">Trust</option>
+        </select>
+
+        <label for="secondary-emotion">Secondary Emotion:</label>
+        <select id="secondary-emotion">
+            <option value="">Select Secondary Emotion</option>
+        </select>
+
+        <label for="tertiary-emotion">Tertiary Emotion:</label>
+        <select id="tertiary-emotion">
+            <option value="">Select Tertiary Emotion</option>
+        </select>
+
+        <label for="influence">Influence:</label>
+        <select id="influence">
+            <option value="">Select Influence</option>
+            <option value="Health, self-care">Health, self-care</option>
+            <option value="Physical well-being (athletic form)">Physical well-being (athletic form)</option>
+            <option value="Hobbies">Hobbies</option>
+            <option value="Identity, self-confidence">Identity, self-confidence</option>
+            <option value="Spirituality">Spirituality</option>
+            <option value="Acquaintances">Acquaintances</option>
+            <option value="Family">Family</option>
+            <option value="Friends">Friends</option>
+            <option value="Partner">Partner</option>
+            <option value="Dating">Dating</option>
+            <option value="Work">Work</option>
+            <option value="Money">Money</option>
+            <option value="Responsibilities">Responsibilities</option>
+            <option value="School, university">School, university</option>
+            <option value="Travel">Travel</option>
+            <option value="Weather">Weather</option>
+            <option value="Specific other event">Specific other event</option>
+        </select>
+
+        <button id="check-button">Check</button>
+
+        <div class="result" id="result-area">No matching analysis found.</div>
+    </div>
+
+    <script>
+        document.getElementById('check-button').addEventListener('click', function() {
+            const primaryEmotion = document.getElementById('primary-emotion').value;
+            const secondaryEmotion = document.getElementById('secondary-emotion').value;
+            const tertiaryEmotion = document.getElementById('tertiary-emotion').value;
+            const influence = document.getElementById('influence').value;
+            const resultArea = document.getElementById('result-area');
+
+            if (!primaryEmotion || !secondaryEmotion || !tertiaryEmotion || !influence) {
+                resultArea.innerHTML = "Please select all fields.";
+                return;
+            }
+
+            fetch('full_list_new_new.json') // Ensure your JSON file is in the same directory
+                .then(response => response.json())
+                .then(data => {
+                    const match = data.find(item => 
+                        item.primary_emotion === primaryEmotion &&
+                        item.secondary_emotion === secondaryEmotion &&
+                        item.tertiary_emotion === tertiaryEmotion &&
+                        item.influence === influence
+                    );
+
+                    if (match) {
+                        resultArea.innerHTML = `<h3>Analysis:</h3><p>${match.analysis}</p>`;
+                    } else {
+                        resultArea.innerHTML = "No matching analysis found.";
+                    }
+                })
+                .catch(error => {
+                    resultArea.innerHTML = "Error loading data. Please try again.";
+                    console.error('Error fetching data:', error);
+                });
+        });
+
+        // Data for secondary and tertiary emotions (example structure)
+        const emotionHierarchy = {
+            "Anger": {
+                "Rage": ["Hate", "Hostility"],
+                "Annoyance": ["Irritation", "Frustration"]
+            },
+            "Fear": {
+                "Anxiety": ["Nervousness", "Tension"],
+                "Panic": ["Horror", "Dread"]
+            },
+            "Sadness": {
+                "Grief": ["Sorrow", "Despair"],
+                "Disappointment": ["Regret", "Loneliness"]
+            },
+            "Joy": {
+                "Happiness": ["Contentment", "Satisfaction"],
+                "Excitement": ["Euphoria", "Delight"]
+            },
+            "Surprise": {
+                "Amazement": ["Wonder", "Awe"],
+                "Shock": ["Disbelief", "Stupefaction"]
+            },
+            "Trust": {
+                "Acceptance": ["Approval", "Support"],
+                "Admiration": ["Respect", "Appreciation"]
+            }
+        };
+
+        // Populate secondary emotion dropdown
+        document.getElementById('primary-emotion').addEventListener('change', function() {
+            const secondarySelect = document.getElementById('secondary-emotion');
+            secondarySelect.innerHTML = '<option value="">Select Secondary Emotion</option>';
+            const selectedPrimary = this.value;
+            if (emotionHierarchy[selectedPrimary]) {
+                Object.keys(emotionHierarchy[selectedPrimary]).forEach(secondary => {
+                    const option = document.createElement('option');
+                    option.value = secondary;
+                    option.textContent = secondary;
+                    secondarySelect.appendChild(option);
+                });
+            }
+        });
+
+        // Populate tertiary emotion dropdown
+        document.getElementById('secondary-emotion').addEventListener('change', function() {
+            const tertiarySelect = document.getElementById('tertiary-emotion');
+            tertiarySelect.innerHTML = '<option value="">Select Tertiary Emotion</option>';
+            const selectedPrimary = document.getElementById('primary-emotion').value;
+            const selectedSecondary = this.value;
+            if (emotionHierarchy[selectedPrimary] && emotionHierarchy[selectedPrimary][selectedSecondary]) {
+                emotionHierarchy[selectedPrimary][selectedSecondary].forEach(tertiary => {
+                    const option = document.createElement('option');
+                    option.value = tertiary;
+                    option.textContent = tertiary;
+                    tertiarySelect.appendChild(option);
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
