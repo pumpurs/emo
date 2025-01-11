@@ -8,7 +8,6 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            background-color: #f5f7fa;
         }
         h1, h2 {
             color: #333;
@@ -18,24 +17,13 @@
             margin: 10px 0;
             width: 100%;
             max-width: 400px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
         }
         .output-container {
             margin-top: 20px;
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            background-color: #ffffff;
+            background-color: #f9f9f9;
         }
         .output-section {
             margin-bottom: 20px;
@@ -48,16 +36,6 @@
             white-space: pre-wrap;
             line-height: 1.6;
             color: #333;
-        }
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 5px;
-        }
-        .error-message {
-            color: red;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -92,16 +70,14 @@
         </div>
     </div>
 
-    <div id="error" class="error-message" style="display:none;">No matching analysis found.</div>
-
     <script>
         let data = [];
         fetch('full_list_new_new.json')
             .then(response => response.json())
             .then(json => {
                 data = json;
-                console.log('Data loaded successfully:', data);
                 populateDropdowns();
+                console.log('Data loaded successfully:', data);
             })
             .catch(error => {
                 console.error('Error loading data:', error);
@@ -139,44 +115,52 @@
         }
 
         function retrieveAnalysis() {
-            const primary = document.getElementById('primary-emotion').value.trim();
-            const secondary = document.getElementById('secondary-emotion').value.trim();
-            const tertiary = document.getElementById('tertiary-emotion').value.trim();
-            const influence = document.getElementById('influence').value.trim();
+            const primary = document.getElementById('primary-emotion').value.trim().toLowerCase();
+            const secondary = document.getElementById('secondary-emotion').value.trim().toLowerCase();
+            const tertiary = document.getElementById('tertiary-emotion').value.trim().toLowerCase();
+            const influence = document.getElementById('influence').value.trim().toLowerCase();
 
-            console.log("Selected Values:", { primary, secondary, tertiary, influence });
+            if (!primary || !secondary || !tertiary || !influence) {
+                alert('Please select all fields.');
+                return;
+            }
+
+            console.log("Primary Emotion Selected:", primary);
+            console.log("Secondary Emotion Selected:", secondary);
+            console.log("Tertiary Emotion Selected:", tertiary);
+            console.log("Influence Selected:", influence);
 
             const result = data.find(item =>
-                item.primary_emotion.trim().toLowerCase() === primary.toLowerCase() &&
-                item.secondary_emotion.trim().toLowerCase() === secondary.toLowerCase() &&
-                item.tertiary_emotion.trim().toLowerCase() === tertiary.toLowerCase() &&
-                item.influence.trim().toLowerCase() === influence.toLowerCase()
+                item.primary_emotion.trim().toLowerCase() === primary &&
+                item.secondary_emotion.trim().toLowerCase() === secondary &&
+                item.tertiary_emotion.trim().toLowerCase() === tertiary &&
+                item.influence.trim().toLowerCase() === influence
             );
 
             if (result) {
-                console.log("Matching Result:", result);
+                console.log('Matching analysis found:', result);
                 document.getElementById('clarify-emotion').innerHTML = formatText(result.analysis.clarify_emotion);
                 document.getElementById('explore-influence').innerHTML = formatText(result.analysis.explore_influence);
-                
+
                 const insightsList = document.getElementById('insights-guidance');
                 insightsList.innerHTML = '';
                 (result.analysis.insights_guidance || []).forEach(insight => {
                     const li = document.createElement('li');
-                    li.innerHTML = insight;
+                    li.innerHTML = formatText(insight);
                     insightsList.appendChild(li);
                 });
 
                 document.getElementById('output').style.display = 'block';
-                document.getElementById('error').style.display = 'none';
             } else {
-                console.warn('No matching analysis found.');
+                alert('No matching analysis found.');
+                console.log('No matching analysis found for selected values.');
                 document.getElementById('output').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
             }
         }
 
         function formatText(text) {
-            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold formatting for **text**
+            if (!text) return 'No data provided.';
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         }
     </script>
 </body>
