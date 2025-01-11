@@ -8,156 +8,147 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            padding: 20px;
         }
-        h1, h3 {
+        h1 {
             text-align: center;
         }
-        label {
-            font-weight: bold;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
         }
-        select, button {
-            display: block;
+        .dropdown {
             margin: 10px 0;
-            padding: 5px;
             width: 100%;
+            padding: 8px;
         }
-        #output {
-            border: 1px solid #ccc;
-            padding: 20px;
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .output {
             margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
             background-color: #f9f9f9;
         }
-        #output h4 {
+        .output h2 {
             margin-bottom: 5px;
+        }
+        .output ul {
+            padding-left: 20px;
         }
     </style>
 </head>
 <body>
+
     <h1>Emotion Analysis Tool</h1>
-    
-    <label for="primary">Primary Emotion:</label>
-    <select id="primary" onchange="populateSecondaryDropdown()">
-        <option value="">Select Primary Emotion</option>
-    </select>
-    
-    <label for="secondary">Secondary Emotion:</label>
-    <select id="secondary" onchange="populateTertiaryDropdown()">
-        <option value="">Select Secondary Emotion</option>
-    </select>
-    
-    <label for="tertiary">Tertiary Emotion:</label>
-    <select id="tertiary">
-        <option value="">Select Tertiary Emotion</option>
-    </select>
-    
-    <label for="influence">Influence:</label>
-    <select id="influence">
-        <option value="">Select Influence</option>
-    </select>
-    
-    <button onclick="checkAnalysis()">Check</button>
-    
-    <div id="output"></div>
+    <div class="container">
+        <label for="primary">Primary Emotion:</label>
+        <select id="primary" class="dropdown"></select>
+
+        <label for="secondary">Secondary Emotion:</label>
+        <select id="secondary" class="dropdown"></select>
+
+        <label for="tertiary">Tertiary Emotion:</label>
+        <select id="tertiary" class="dropdown"></select>
+
+        <label for="influence">Influence:</label>
+        <select id="influence" class="dropdown"></select>
+
+        <button class="button" onclick="getAnalysis()">Check</button>
+
+        <div id="output" class="output"></div>
+    </div>
 
     <script>
-        let data = [];
-        
-        // Fetch the JSON file and load data
+        let jsonData = {}; // To store the loaded JSON data
+
+        // Load JSON data from the server
         fetch('new.json')
             .then(response => response.json())
-            .then(json => {
-                data = json;
-                populatePrimaryDropdown();
+            .then(data => {
+                jsonData = data;
+                populateDropdowns();
             })
             .catch(error => {
                 console.error('Error loading data:', error);
-                alert('Error loading data. Please try again.');
+                document.getElementById('output').innerHTML = 'Error loading data. Please try again.';
             });
 
-        function populatePrimaryDropdown() {
-            const primaryDropdown = document.getElementById('primary');
-            const uniquePrimary = [...new Set(data.map(item => item.primary_emotion))];
-            uniquePrimary.forEach(emotion => {
+        // Populate dropdowns with unique values from JSON
+        function populateDropdowns() {
+            const primarySet = new Set();
+            const secondarySet = new Set();
+            const tertiarySet = new Set();
+            const influenceSet = new Set();
+
+            jsonData.forEach(item => {
+                primarySet.add(item.primary_emotion);
+                secondarySet.add(item.secondary_emotion);
+                tertiarySet.add(item.tertiary_emotion);
+                influenceSet.add(item.influence);
+            });
+
+            populateSelect('primary', primarySet);
+            populateSelect('secondary', secondarySet);
+            populateSelect('tertiary', tertiarySet);
+            populateSelect('influence', influenceSet);
+        }
+
+        // Helper function to populate a select element with options
+        function populateSelect(id, values) {
+            const select = document.getElementById(id);
+            values.forEach(value => {
                 const option = document.createElement('option');
-                option.value = emotion;
-                option.textContent = emotion;
-                primaryDropdown.appendChild(option);
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
             });
         }
 
-        function populateSecondaryDropdown() {
-            const secondaryDropdown = document.getElementById('secondary');
-            secondaryDropdown.innerHTML = '<option value="">Select Secondary Emotion</option>';
-            const selectedPrimary = document.getElementById('primary').value;
-            const filteredData = data.filter(item => item.primary_emotion === selectedPrimary);
-            const uniqueSecondary = [...new Set(filteredData.map(item => item.secondary_emotion))];
-            uniqueSecondary.forEach(emotion => {
-                const option = document.createElement('option');
-                option.value = emotion;
-                option.textContent = emotion;
-                secondaryDropdown.appendChild(option);
-            });
-        }
+        // Function to get and display the analysis based on selected values
+        function getAnalysis() {
+            const primary = document.getElementById('primary').value;
+            const secondary = document.getElementById('secondary').value;
+            const tertiary = document.getElementById('tertiary').value;
+            const influence = document.getElementById('influence').value;
 
-        function populateTertiaryDropdown() {
-            const tertiaryDropdown = document.getElementById('tertiary');
-            tertiaryDropdown.innerHTML = '<option value="">Select Tertiary Emotion</option>';
-            const selectedPrimary = document.getElementById('primary').value;
-            const selectedSecondary = document.getElementById('secondary').value;
-            const filteredData = data.filter(item => item.primary_emotion === selectedPrimary && item.secondary_emotion === selectedSecondary);
-            const uniqueTertiary = [...new Set(filteredData.map(item => item.tertiary_emotion))];
-            uniqueTertiary.forEach(emotion => {
-                const option = document.createElement('option');
-                option.value = emotion;
-                option.textContent = emotion;
-                tertiaryDropdown.appendChild(option);
-            });
-        }
-
-        function checkAnalysis() {
-            const selectedPrimary = document.getElementById('primary').value;
-            const selectedSecondary = document.getElementById('secondary').value;
-            const selectedTertiary = document.getElementById('tertiary').value;
-            const selectedInfluence = document.getElementById('influence').value;
-
-            const result = data.find(item =>
-                item.primary_emotion === selectedPrimary &&
-                item.secondary_emotion === selectedSecondary &&
-                item.tertiary_emotion === selectedTertiary &&
-                item.influence === selectedInfluence
+            const result = jsonData.find(item =>
+                item.primary_emotion === primary &&
+                item.secondary_emotion === secondary &&
+                item.tertiary_emotion === tertiary &&
+                item.influence === influence
             );
 
-            displayAnalysis(result ? result.analysis : null);
-        }
-
-        function displayAnalysis(analysis) {
             const outputDiv = document.getElementById('output');
-            
-            if (!analysis) {
-                outputDiv.innerHTML = '<p>No matching analysis found.</p>';
-                return;
+            if (result) {
+                outputDiv.innerHTML = `
+                    <h2>Analysis:</h2>
+                    <h3>Clarify the Emotion:</h3>
+                    <p><strong>Primary Emotion – ${result.primary_emotion}:</strong> ${result.analysis.clarify_emotion.primary}</p>
+                    <p><strong>Secondary Emotion – ${result.secondary_emotion}:</strong> ${result.analysis.clarify_emotion.secondary}</p>
+                    <p><strong>Tertiary Emotion – ${result.tertiary_emotion}:</strong> ${result.analysis.clarify_emotion.tertiary}</p>
+                    
+                    <h3>Explore the Influence:</h3>
+                    <p>${result.analysis.explore_influence}</p>
+                    
+                    <h3>Insights and Guidance:</h3>
+                    <ul>${result.analysis.insights_guidance.map(insight => `<li>${insight}</li>`).join('')}</ul>
+                `;
+            } else {
+                outputDiv.innerHTML = 'No matching analysis found.';
             }
-
-            outputDiv.innerHTML = `
-                <h3>Analysis:</h3>
-                <div>
-                    <h4>Clarify the Emotion:</h4>
-                    <p>${extractSection(analysis, 'Clarify the Emotion:', 'Explore the Influence:')}</p>
-
-                    <h4>Explore the Influence:</h4>
-                    <p>${extractSection(analysis, 'Explore the Influence:', 'Insights and Guidance:')}</p>
-
-                    <h4>Insights and Guidance:</h4>
-                    <p>${extractSection(analysis, 'Insights and Guidance:')}</p>
-                </div>
-            `;
-        }
-
-        function extractSection(text, startMarker, endMarker = null) {
-            const startIndex = text.indexOf(startMarker) + startMarker.length;
-            const endIndex = endMarker ? text.indexOf(endMarker) : text.length;
-            return text.substring(startIndex, endIndex).trim();
         }
     </script>
+
 </body>
 </html>
